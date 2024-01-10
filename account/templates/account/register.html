@@ -1,0 +1,22 @@
+{% extends 'account/base.html' %}
+
+{% block content %}
+    <h2>Register</h2>
+    <form id="registerForm" method="POST">
+        {% csrf_token %}
+        <label for="registerUsername">Email:</label>
+        <input type="text" id="registerUsername" name="email" required>
+        <br>
+        <label for="registerPassword">Name:</label>
+        <input type="text" id="registerName" name="name" required>
+        <br>
+        <label for="registerPassword">Password:</label>
+        <input type="password" id="registerPassword" name="password" required>
+        <br>
+        <label for="registerPassword">Confirm Password:</label>
+        <input type="password" id="registerPassword2" name="password2" required>
+        <br>
+        <button type="submit">Register</button>
+        <p id="registerError" class="error"></p>
+    </form>
+{% endblock %}

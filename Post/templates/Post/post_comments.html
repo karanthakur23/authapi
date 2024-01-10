@@ -1,0 +1,18 @@
+<!-- templates/posts_comments_view.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>Post Comments</h2>
+
+    <div>
+        <!-- Display all comments of a specific post -->
+        {% for comment in post_comments %}
+            <div>
+                <p>{{ comment.text }}</p>
+                <p>Commented by: {{ comment.user.username }}</p>
+                <!-- Add more details based on your PostComment model -->
+            </div>
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}

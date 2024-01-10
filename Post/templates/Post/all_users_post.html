@@ -1,0 +1,19 @@
+<!-- templates/all_users_posts.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>All Users Posts</h2>
+
+    <div>
+        <!-- Display all users' posts -->
+        {% for post in posts %}
+            <div>
+                <h3>{{ post.caption }}</h3>
+                <p>{{ post.user.name }}</p>
+                <p>Posted at: {{ post.uploaded_at }}</p>
+                <!-- Add more details based on your Post model -->
+            </div>
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}

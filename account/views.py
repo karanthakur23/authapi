@@ -4,6 +4,9 @@ from rest_framework import status
 from account.serializers import *
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import render
+import json
+import requests
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -19,6 +22,7 @@ class UserRegistrationView(APIView):
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
     token = get_tokens_for_user(user)
+    print('Registration Success >>>>>')
     return Response({'token': token, 'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
 
 class UserLoginView(APIView):
@@ -30,6 +34,52 @@ class UserLoginView(APIView):
     user = authenticate(email=email, password=password)
     if user is not None:
       token = get_tokens_for_user(user)
+      print("Login Success >>>>>")
       return Response({'token': token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
     else:
       return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
+
+def UserLogin(request):
+  if request.method == 'POST':
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+
+    url = "http://127.0.0.1:8000/api/user/login/"
+
+    payload = json.dumps({
+      "email": email,
+      "password": password
+    })
+    headers = {
+      'Content-Type': 'application/json',
+      'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    print(response, '------------------------------')
+    # return redirect('')
+  return render(request, 'account/login.html')
+
+
+def UserRegister(request):
+  if request.method == 'POST':
+    email = request.POST.get('email')
+    name = request.POST.get('name')
+    password = request.POST.get('password')
+    password2 = request.POST.get('password2')
+
+    url = "http://127.0.0.1:8000/api/user/register/"
+
+    payload = json.dumps({
+      "email": email,
+      "name": name,
+      "password": password,
+      "password2": password2
+    })
+    headers = {
+      'Content-Type': 'application/json',
+      'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+  return render(request, 'account/register.html')

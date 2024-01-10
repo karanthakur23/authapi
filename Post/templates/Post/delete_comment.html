@@ -1,0 +1,13 @@
+<!-- templates/delete_comment.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>Delete Comment</h2>
+
+    <p>Are you sure you want to delete this comment?</p>
+
+    <form method="post" action="{% url 'delete_comment' comment.id %}">
+        {% csrf_token %}
+        <button type="submit">Delete Comment</button>
+    </form>
+{% endblock %}

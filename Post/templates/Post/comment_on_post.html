@@ -1,0 +1,13 @@
+<!-- templates/comment_on_post.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>Comment on Post</h2>
+
+    <form method="post" action="{% url 'comment_on_post' post.id %}">
+        {% csrf_token %}
+        <label for="commentText">Your Comment:</label>
+        <input type="text" id="commentText" name="text" required>
+        <button type="submit">Comment</button>
+    </form>
+{% endblock %}

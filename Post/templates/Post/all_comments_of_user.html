@@ -1,0 +1,17 @@
+<!-- templates/retrieve_all_comments_of_user.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>Comments by User</h2>
+
+    <div>
+        <!-- Display all comments by a specific user -->
+        {% for comment in comments %}
+            <div>
+                <p>{{ comment.text }}</p>
+                <!-- Add more details based on your PostComment model -->
+            </div>
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}

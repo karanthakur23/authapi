@@ -1,0 +1,13 @@
+<!-- templates/update_comment.html -->
+{% extends 'Post/base.html' %}
+
+{% block content %}
+    <h2>Update Comment</h2>
+
+    <form method="post" action="{% url 'update_comment' comment.id %}">
+        {% csrf_token %}
+        <label for="commentText">Updated Comment:</label>
+        <input type="text" id="commentText" name="text" value="{{ comment.text }}" required>
+        <button type="submit">Update Comment</button>
+    </form>
+{% endblock %}
