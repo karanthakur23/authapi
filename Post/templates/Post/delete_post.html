@@ -5,9 +5,10 @@
     <h2>Delete Post</h2>
 
     <p>Are you sure you want to delete this post?</p>
-
-    <form method="post" action="{% url 'delete_post' post.id %}">
+    {{ post.caption }}
+    <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="_method" value="DELETE">
         <button type="submit">Delete Post</button>
     </form>
 {% endblock %}

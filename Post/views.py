@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from .models import *
 from .serializers import *
@@ -65,26 +65,27 @@ class AllUsersPosts(APIView):
     # permission_classes = [IsAuthenticated]
 
     def get(self, request, post_id=None):
+        form = PostForm()
         if post_id is None:
             posts = Post.objects.all()
             serializer = PostRetrieveSerializer(posts, many= True)
-            return render(request, 'Post/all_users_post.html', {'posts': serializer.data})
+            return render(request, 'Post/all_users_post.html', {'posts': serializer.data, 'form': form})
         else:
             post = Post.objects.get(id=post_id)
             serializer = PostRetrieveSerializer(post)
             return render(request, 'Post/user_post_view.html', {'post': serializer.data})
 
     def post(self, request):
-        # Create an instance of the serializer with no data
-        serializer = PostSerializer()
-
-        # Render the template with the empty form
-        return render(request, 'Post/create_post.html', {'form': serializer})
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, post_id):
         if post_id is not None:
             post = get_object_or_404(Post, id=post_id)
-            serializer = PostRetrieveSerializer(post, data=request.data)
+            serializer = PostSerializer(post, data=request.data)
 
             if serializer.is_valid():
                 serializer.save()
@@ -114,44 +115,74 @@ def createPost(request):
         caption = request.POST.get('caption')
         url = "http://127.0.0.1:8000/posts/"
 
+        # auth_token = request.session.get('auth_token', None)
+        auth_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA0OTYzMTg2LCJpYXQiOjE3MDQ5NTk1ODYsImp0aSI6Ijk3YjdiOWYyMmViMjQ4N2RhNjVmYmNkMDczOTEwOGYyIiwidXNlcl9pZCI6OX0.kRkNzE5zZfm3K-GUiHZ5lagPNAENquR3QZrYt4CejxY'
+        # print(auth_token, '=====================')
         payload = json.dumps({
-        "caption": caption
+            "caption": caption
         })
         headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA0ODgzMTMzLCJpYXQiOjE3MDQ4Nzk1MzMsImp0aSI6IjJmMDBjMGRhYzk3MzQyMDhhMDRjMjI0OTk2NDI1ZTlhIiwidXNlcl9pZCI6OX0.94ocF8iKPUYxh-7Iq1vBP9Ik9uXtnhlTFEu8BhvGfrs',
-        'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {auth_token}',
+            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
         }
 
-        response = requests.request("POST", url, headers=headers, data=payload)
+        print(f"Request Headers: {headers}")
+
+        response = requests.post(url, headers=headers, data=payload)
+
+        print(f"Response Status Code: {response.status_code}")
+        print(f"Response Content: {response.content}")
+
     return render(request, 'Post/create_post.html', {'form': form})
 
 
-def testFunc(request):
+def updatePost(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = PostForm(instance=post)
+
     if request.method == 'POST':
-        url = "http://127.0.0.1:8000/api/user/register/"
+        if request.POST.get('_method') == 'PUT':
+            caption = request.POST.get('caption')
 
-        payload = json.dumps({
-        "email": email,
-        "name": name,
-        "password": password,
-        "password2": password2
-        })
-        headers = {
-        'Content-Type': 'application/json',
-        'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
-        }
+            url = f"http://127.0.0.1:8000/posts/{post_id}/"
 
-        response = requests.request("POST", url, headers=headers, data=payload)
-    return render(request, 'account/register.html')
+            payload = json.dumps({
+            "caption": caption
+            })
+            headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA0OTcyNDc4LCJpYXQiOjE3MDQ5Njg4NzgsImp0aSI6IjUzNmYzYjVlNjY1YTQzNGFiMDkxOTE4YzRkNWNiZGZmIiwidXNlcl9pZCI6MTB9.B8tKbE0jMK4dxEcuGfN3Ejc_S6w1iHdawbhgXPdHUiI',
+            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
+            }
 
-
-
-
+            response = requests.request("PUT", url, headers=headers, data=payload)
+            return redirect('alll-users-posts')
+    return render(request, 'Post/update_post.html', {'form': form})
 
 
+def deletePost(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    # form = PostForm(instance=post)
 
+    if request.method == 'POST':
+        if request.POST.get('_method') == 'PUT':
+    #         caption = request.POST.get('caption')
 
+    #         url = f"http://127.0.0.1:8000/posts/{post_id}/"
+
+    #         payload = json.dumps({
+    #         "caption": caption
+    #         })
+    #         headers = {
+    #         'Content-Type': 'application/json',
+    #         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA0OTcyNDc4LCJpYXQiOjE3MDQ5Njg4NzgsImp0aSI6IjUzNmYzYjVlNjY1YTQzNGFiMDkxOTE4YzRkNWNiZGZmIiwidXNlcl9pZCI6MTB9.B8tKbE0jMK4dxEcuGfN3Ejc_S6w1iHdawbhgXPdHUiI',
+    #         'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
+    #         }
+
+    #         response = requests.request("PUT", url, headers=headers, data=payload)
+            return redirect('alll-users-posts')
+    return render(request, 'Post/delete_post.html', {'post': post})
 
 
 

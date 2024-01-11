@@ -4,7 +4,7 @@ from rest_framework import status
 from account.serializers import *
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import json
 import requests
 
@@ -34,6 +34,7 @@ class UserLoginView(APIView):
     user = authenticate(email=email, password=password)
     if user is not None:
       token = get_tokens_for_user(user)
+      request.session['auth_token'] = token
       print("Login Success >>>>>")
       return Response({'token': token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
     else:
@@ -57,7 +58,7 @@ def UserLogin(request):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     print(response, '------------------------------')
-    # return redirect('')
+    return redirect('alll-users-posts')
   return render(request, 'account/login.html')
 
 

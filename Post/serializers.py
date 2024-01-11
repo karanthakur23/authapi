@@ -10,7 +10,7 @@ class PostSerializer(serializers.ModelSerializer):
 class PostRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['user', 'caption', 'uploaded_at']
+        fields = ['id', 'user', 'caption', 'uploaded_at']
 
 # LIKE
 class LikePostSerializer(serializers.ModelSerializer):

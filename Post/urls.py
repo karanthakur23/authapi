@@ -2,7 +2,7 @@ from django.urls import path
 from Post.views import *
 
 urlpatterns = [
-    path('', AllUsersPosts.as_view()),
+    path('', AllUsersPosts.as_view(), name='alll-users-posts'),
     path('create_post/', AllUsersPosts.as_view()),
     path('<int:post_id>/', AllUsersPosts.as_view()),
     path('user/<int:user_id>/', UserPostsView.as_view()),
@@ -19,4 +19,6 @@ urlpatterns = [
 
     # django function based
     path('create-post/', createPost, name='create-post'),
+    path('update-post/<int:post_id>/', updatePost, name='update-post'),
+    path('delete-post/<int:post_id>/', deletePost, name='delete-post'),
 ]

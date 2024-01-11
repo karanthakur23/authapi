@@ -4,6 +4,15 @@
 {% block content %}
     <h2>All Users Posts</h2>
 
+    <h2>Create Post</h2>
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Create Post</button>
+        </form>
+    </div>
+    <hr>
     <div>
         <!-- Display all users' posts -->
         {% for post in posts %}
@@ -12,6 +21,11 @@
                 <p>{{ post.user.name }}</p>
                 <p>Posted at: {{ post.uploaded_at }}</p>
                 <!-- Add more details based on your Post model -->
+                <!-- Update Post -->
+                <p>{{post.id}}</p>
+                <button type="submit"> <a href="{% url 'update-post' post_id=post.id %}">Update</a></button>
+                <button type="submit"><a href="{% url 'delete-post' post_id=post.id %}">Delete</a></button>
+
             </div>
             <hr>
         {% endfor %}
