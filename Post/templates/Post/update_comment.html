@@ -4,10 +4,16 @@
 {% block content %}
     <h2>Update Comment</h2>
 
-    <form method="post" action="{% url 'update_comment' comment.id %}">
+    logged in user: {{request.user}}
+    {% if request.user.is_authenticated %}
+    logged in user: {{request.user}}
+    {% endif %}
+
+    <form method="POST">
         {% csrf_token %}
-        <label for="commentText">Updated Comment:</label>
-        <input type="text" id="commentText" name="text" value="{{ comment.text }}" required>
+        <input type="hidden" name="_method" value="PUT">
+        <label for="commentText">Update Comment:</label>
+        <input type="text" id="commentText" name="text" value="{{ comment.comment_text }}" required>
         <button type="submit">Update Comment</button>
     </form>
 {% endblock %}

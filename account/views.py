@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import render, redirect
 import json
 import requests
+from .models import Token
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -22,6 +23,7 @@ class UserRegistrationView(APIView):
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
     token = get_tokens_for_user(user)
+    Token.objects.create(user=user, access_token=token['access'])
     print('Registration Success >>>>>')
     return Response({'token': token, 'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
 
@@ -32,13 +34,19 @@ class UserLoginView(APIView):
     email = serializer.data.get('email')
     password = serializer.data.get('password')
     user = authenticate(email=email, password=password)
+    print(f'Authenticated user: {user}')
     if user is not None:
       token = get_tokens_for_user(user)
-      request.session['auth_token'] = token
-      print("Login Success >>>>>")
+      token_instance, created = Token.objects.get_or_create(user=user)
+      token_instance.access_token = token['access']
+      token_instance.save()
       return Response({'token': token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
+    # else:
+    #   return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
     else:
-      return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
+      # Log the authentication failure
+      print(f'Authentication failed for email: {email}')
+      return Response({'errors': {'non_field_errors': ['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
 
 def UserLogin(request):
   if request.method == 'POST':
@@ -53,12 +61,12 @@ def UserLogin(request):
     })
     headers = {
       'Content-Type': 'application/json',
-      'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
+      'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
     print(response, '------------------------------')
-    return redirect('alll-users-posts')
+    return redirect('all-users-posts')
   return render(request, 'account/login.html')
 
 

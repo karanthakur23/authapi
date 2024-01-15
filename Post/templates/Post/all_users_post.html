@@ -4,6 +4,14 @@
 {% block content %}
     <h2>All Users Posts</h2>
 
+    {% if request.user.is_authenticated %}
+    <p>Welcome, {{ request.user.username }}!</p>
+    <!-- Include content for authenticated users -->
+    {% else %}
+        <p>Not logged in.</p>
+        <!-- Include content for non-authenticated users -->
+    {% endif %}
+
     <h2>Create Post</h2>
     <div>
         <form method="POST">
@@ -23,9 +31,11 @@
                 <!-- Add more details based on your Post model -->
                 <!-- Update Post -->
                 <p>{{post.id}}</p>
+                <form method="POST" action="{% url 'like-on-post' post_id=post.id %}">
+                <button type="submit">Like</button>
+                </form>
                 <button type="submit"> <a href="{% url 'update-post' post_id=post.id %}">Update</a></button>
                 <button type="submit"><a href="{% url 'delete-post' post_id=post.id %}">Delete</a></button>
-
             </div>
             <hr>
         {% endfor %}

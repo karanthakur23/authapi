@@ -70,3 +70,8 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Token(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    access_token = models.CharField(max_length=255)

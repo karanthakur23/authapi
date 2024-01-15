@@ -4,7 +4,15 @@
 {% block content %}
     <h2>Comment on Post</h2>
 
-    <form method="post" action="{% url 'comment_on_post' post.id %}">
+    <div>
+        <h3>{{ post.caption }}</h3>
+        <p>{{ post.user.name }}</p>
+        <p>Posted at: {{ post.uploaded_at }}</p>
+        <!-- Add more details based on your Post model -->
+    </div>
+
+
+    <form method="post">
         {% csrf_token %}
         <label for="commentText">Your Comment:</label>
         <input type="text" id="commentText" name="text" required>

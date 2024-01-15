@@ -2,10 +2,11 @@
 {% extends 'Post/base.html' %}
 
 {% block content %}
-    <h2>User Post</h2>
+    <h2>User Posts</h2>
     <hr>
     <div>
         <!-- Display posts of a specific user -->
+        {% for post in posts %}
             <div>
                 <h3>{{ post.caption }}</h3>
                 <p>{{ post.user.name }}</p>
@@ -13,5 +14,6 @@
                 <!-- Add more details based on your Post model -->
             </div>
         <hr>
+        {% endfor %}
     </div>
 {% endblock %}

@@ -8,8 +8,8 @@
         <!-- Display all comments of a specific post -->
         {% for comment in post_comments %}
             <div>
-                <p>{{ comment.text }}</p>
-                <p>Commented by: {{ comment.user.username }}</p>
+                <p>{{ comment.comment_text }}</p>
+                <p>Commented by: {{ comment.user.name }}</p>
                 <!-- Add more details based on your PostComment model -->
             </div>
             <hr>

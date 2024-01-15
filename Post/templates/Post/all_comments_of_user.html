@@ -2,13 +2,14 @@
 {% extends 'Post/base.html' %}
 
 {% block content %}
-    <h2>Comments by User</h2>
+    <h2>Comments by: {{username}}</h2>
+    
 
     <div>
         <!-- Display all comments by a specific user -->
         {% for comment in comments %}
             <div>
-                <p>{{ comment.text }}</p>
+                <p>{{ comment.comment_text }}</p>
                 <!-- Add more details based on your PostComment model -->
             </div>
             <hr>

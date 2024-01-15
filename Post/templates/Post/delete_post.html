@@ -6,7 +6,7 @@
 
     <p>Are you sure you want to delete this post?</p>
     {{ post.caption }}
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
         <input type="hidden" name="_method" value="DELETE">
         <button type="submit">Delete Post</button>
