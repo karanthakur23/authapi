@@ -1,5 +1,5 @@
 from django.urls import path
-from account.views import UserRegistrationView, UserLoginView, UserLogin, UserRegister
+from account.views import UserRegistrationView, UserLoginView, UserLogin, UserRegister, user_list
 
 urlpatterns = [
     # api (drf)
@@ -9,4 +9,5 @@ urlpatterns = [
     # function-based view(django)
     path('user-login/', UserLogin , name='user-login'),
     path('user-register/', UserRegister , name='user-register'),
+    path('', user_list, name='user_list')
 ]

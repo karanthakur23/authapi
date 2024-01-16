@@ -246,7 +246,6 @@ class UpdateComment(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# ---ISSUE---
 def updateCommentView(request, comment_id):
     comment = get_object_or_404(PostComment, id=comment_id)
 

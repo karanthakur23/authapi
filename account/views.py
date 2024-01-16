@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework import status
 from account.serializers import *
 from django.contrib.auth import authenticate
@@ -92,3 +93,11 @@ def UserRegister(request):
 
     response = requests.request("POST", url, headers=headers, data=payload)
   return render(request, 'account/register.html')
+
+
+
+@api_view(['GET'])
+def user_list(request, ):
+    users = User.objects.all().order_by('name')
+    serializer = UserSerializer(instance=users, many=True)
+    return Response(serializer.data)
