@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{name}}</title>
+</head>
+<body>
+
+    <h1>Chat with {{ selected_user }}{{name}}</h1>
+
+    <div id="chat-messages">
+        <!-- Messages between the users go here -->
+    </div>
+
+    <textarea id="message-input" placeholder="Type your message..."></textarea>
+    <button onclick="sendMessage()">Send</button>
+    {{receiver_id|json_script:"receiver-id"}}
+    <script>
+        var id = JSON.parse(document.getElementById('receiver-id').textContent);
+        const selectedUser = "{{ selected_user }}";
+        const chatMessages = document.getElementById("chat-messages");
+        const socket = new WebSocket("ws://" + window.location.host + "/ws/chat/"+ id + "/");
+
+        socket.addEventListener("open", (event) => {
+            console.log("WebSocket connection opened");
+            // Optionally, you can send an initial message here, for example, to join the chat room
+        });
+
+        socket.addEventListener("message", (event) => {
+            console.log("Message received:", event.data);
+            displayMessage(event.data);
+        });
+
+        function sendMessage() {
+            const messageInput = document.getElementById("message-input");
+            const message = messageInput.value;
+
+            if (message.trim() !== "") {
+                // Send the message to the server
+                socket.send(JSON.stringify({ to: selectedUser, message }));
+                // Display the sent message in the chat window
+                displayMessage(`You: ${message}`);
+                // Clear the input field after sending the message
+                messageInput.value = "";
+            }
+        }
+
+        function displayMessage(message) {
+            const messageElement = document.createElement("div");
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+        }
+    </script>
+
+</body>
+</html>
