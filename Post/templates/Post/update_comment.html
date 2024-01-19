@@ -4,16 +4,66 @@
 {% block content %}
     <h2>Update Comment</h2>
 
-    logged in user: {{request.user}}
-    {% if request.user.is_authenticated %}
-    logged in user: {{request.user}}
-    {% endif %}
-
-    <form method="POST">
+    <form method="POST" id="updateCommentForm">
         {% csrf_token %}
-        <input type="hidden" name="_method" value="PUT">
+        <input type="hidden" name="csrfmiddleware" value="{{csrf_token}}" id="csrftokenId">
         <label for="commentText">Update Comment:</label>
-        <input type="text" id="commentText" name="text" value="{{ comment.comment_text }}" required>
-        <button type="submit">Update Comment</button>
+        <input type="text" id="commentText" name="text" value="{{ text }}" required>
+        <button type="submit">Save</button>
     </form>
+
+    <script>
+
+        document.getElementById('updateCommentForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission
+            editComment();
+        });
+        function editComment() {
+            var myHeaders = new Headers();
+
+            const csrf_token = document.getElementById('csrftokenId').value;
+            const comment_id = '{{comment_id}}'
+            const token_access = '{{token_access}}'
+
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", `Bearer ${token_access}`);
+            myHeaders.append("x-CSRFToken", csrf_token);
+
+            console.log("Comment ID:", comment_id);
+            console.log(typeof(comment_id))
+            console.log("CSRF Token:", csrf_token);
+            console.log("Authorization Header:", myHeaders.get("Authorization"));
+            comment_ids = parseInt(comment_id)
+            console.log(typeof(comment_ids))
+            var raw = JSON.stringify({
+            "comment_text": '{{text}}'
+            });
+
+            var requestOptions = {
+            method: 'PUT',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+            };
+
+            fetch(`http://127.0.0.1:8000/posts/${comment_ids}/comment/update/`, requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json(); // Parse JSON response
+                } else {
+                    return response.text(); // Return plain text if not JSON
+                }
+            })
+            .then(data => {
+                console.log(data, '<-- data');
+                // Handle the parsed data as needed
+            })
+            .catch(error => console.error('Error:', error));
+            }
+    </script>
 {% endblock %}

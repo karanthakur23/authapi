@@ -12,10 +12,46 @@
     </div>
 
 
-    <form method="post">
+    <form method="post" id="postcomment">
         {% csrf_token %}
+        <input type="hidden" value="{{csrf_token}}" name="csrfmiddleware" id="csrftoken">
         <label for="commentText">Your Comment:</label>
         <input type="text" id="commentText" name="text" required>
         <button type="submit">Comment</button>
     </form>
+
+    <script>
+        document.getElementById('postcomment').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission
+            commentOnPost();
+        });
+
+        function commentOnPost() {
+            var myHeaders = new Headers();
+            var token_access = '{{token_access}}'
+            var csrftoken = document.getElementById('csrftoken')
+            var comment_text = document.getElementById('commentText').value
+            var post_id = '{{post_id}}'
+
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", `Bearer ${token_access}`);
+            myHeaders.append("X-CSRFToken", csrftoken);
+
+            var raw = JSON.stringify({
+            "comment_text": comment_text
+            });
+
+            var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+            };
+
+            fetch(`http://127.0.0.1:8000/posts/${post_id}/comment/`, requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+        }
+    </script>
 {% endblock %}

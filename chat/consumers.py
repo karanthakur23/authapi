@@ -16,17 +16,12 @@ from channels.db import database_sync_to_async
 from channels.exceptions import StopConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self,*args,**kwargs):
-        print("here-----------------")
-
-
-
+    async def connect(self, *args, **kwargs):
         self.room_name = self.scope["url_route"]["kwargs"]["id"]
         self.room_group_name = f"chat_{self.room_name}"
 
         self.user = await self.get_user()
 
-        # print(self.room_name)
         # print(self.room_group_name)
         print(self.user)
         await self.channel_layer.group_add(
@@ -34,11 +29,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
 )
         await self.accept()
-
-    @database_sync_to_async
-    def get_user(self):
-        # Retrieve the user from the scope
-        return self.scope.get('user')
 
     async def disconnect(self, close_code):
         # Leave room group
@@ -98,6 +88,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #             serializer.data
     #         )
     #     )
+
+    @database_sync_to_async
+    def get_user(self):
+        # Retrieve the user from the scope
+        return self.scope.get('user')
 
 def generate_chat_room_name(user1, user2):
     # Sort the usernames alphabetically

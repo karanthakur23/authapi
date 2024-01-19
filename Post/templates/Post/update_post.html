@@ -1,13 +1,63 @@
 <!-- templates/update_post.html -->
 {% extends 'Post/base.html' %}
-
+{% csrf_token %}
 {% block content %}
     <h2>Update Post</h2>
 
-    <form method="post">
+    <form method="put" id="updatePostForm">
         {% csrf_token %}
-        <input type="hidden" name="_method" value="PUT">
-        {{ form.as_p }}
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="my_token">
+        <input type="text" name="caption" id="captionInput" value="{{ post_caption }}">
         <button type="submit">Save</button>
     </form>
+
+    <script>
+        document.getElementById('updatePostForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission
+            editPost();
+        });
+
+        function editPost() {
+            var myHeaders = new Headers();
+            const postId = "{{post_id}}";
+            const token_access = "{{token_access}}";
+            const captionElement = document.getElementById('captionInput');
+            const csrf_token = document.getElementById('my_token').value;
+            const caption = captionElement.value;
+
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", `Bearer ${token_access}`);
+            myHeaders.append("X-CSRFToken", csrf_token);
+
+            var raw = JSON.stringify({
+                "caption": caption
+            });
+
+            var requestOptions = {
+                method: 'PUT',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch(`http://127.0.0.1:8000/posts/${postId}/`, requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json(); // Parse JSON response
+                    } else {
+                        return response.text(); // Return plain text if not JSON
+                    }
+                })
+                .then(data => {
+                    console.log(data, '<-- data');
+                    // Handle the parsed data as needed
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
 {% endblock %}

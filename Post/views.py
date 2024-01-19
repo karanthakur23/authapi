@@ -11,6 +11,7 @@ from .forms import PostForm, CommentForm
 import requests
 import json
 from account.models import *
+from django.contrib.auth.decorators import login_required
 
 # # # POSTS ----------------------------------------------
 # # # to get all user's post
@@ -63,7 +64,7 @@ from account.models import *
 # # POSTS ----------------------------------------------
 # # to get all user's post
 class AllUsersPosts(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, post_id=None):
         logged_in = request.user
@@ -79,6 +80,7 @@ class AllUsersPosts(APIView):
             return render(request, 'Post/user_post_view.html', {'post': serializer.data})
 
     def post(self, request):
+        print(request.user, "create post logged in user")
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
@@ -103,106 +105,68 @@ class AllUsersPosts(APIView):
 
 # to get all posts of specific user
 class UserPostsView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         user = User.objects.get(id=user_id)
         posts = Post.objects.filter(user=user)
         serializer = PostSerializer(posts, many=True)
-        return render(request, 'Post/user_post_view.html', {'posts': posts})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+def UserPosts(request, user_id):
+    user = User.objects.get(id=user_id)
+    token = Token.objects.get(user=user)
+    token_access = token.access_token
+    return render(request, 'Post/user_post_view.html', {'user_id': user_id, 'token_access': token_access})
 
 
 def createPost(request):
     form = PostForm()
-    if request.method == 'POST':
-        caption = request.POST.get('caption')
-        url = "http://127.0.0.1:8000/posts/"
-
-        if request.user.is_authenticated:
-            logged_in = request.user
-            print(logged_in, 'current user')
-            # Rest of your code...
-        else:
-            print('User is not authenticated')
-
-        auth_token = Token.objects.get(user=logged_in)
-        auth_token = auth_token.access_token
-        print(auth_token, '=====================')
-        payload = json.dumps({
-            "caption": caption
-        })
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {auth_token}',
-            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn'
-        }
-
-        print(f"Request Headers: {headers}")
-
-        response = requests.post(url, headers=headers, data=payload)
-
-        print(f"Response Status Code: {response.status_code}")
-        print(f"Response Content: {response.content}")
-
+    user = request.user
+    print(user, 'user-+')
     return render(request, 'Post/create_post.html', {'form': form})
 
 
 def updatePost(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    form = PostForm(instance=post)
-
-    if request.method == 'POST':
-        if request.POST.get('_method') == 'PUT':
-            caption = request.POST.get('caption')
-
-            url = f"http://127.0.0.1:8000/posts/{post_id}/"
-
-            payload = json.dumps({
-            "caption": caption
-            })
-            headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA0OTcyNDc4LCJpYXQiOjE3MDQ5Njg4NzgsImp0aSI6IjUzNmYzYjVlNjY1YTQzNGFiMDkxOTE4YzRkNWNiZGZmIiwidXNlcl9pZCI6MTB9.B8tKbE0jMK4dxEcuGfN3Ejc_S6w1iHdawbhgXPdHUiI',
-            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-            }
-
-            response = requests.request("PUT", url, headers=headers, data=payload)
-            return redirect('all-users-posts')
-    return render(request, 'Post/update_post.html', {'form': form})
+    post_caption = post.caption
+    user = post.user
+    token = Token.objects.get(user=user)
+    token_access = token.access_token
+    return render(request, 'Post/update_post.html', {'post_caption': post_caption, 'token_access': token_access, 'post_id': post_id})
 
 
 def deletePost(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-
-    if request.method == 'POST':
-        if request.POST.get('_method') == 'DELETE':
-
-            url = f"http://127.0.0.1:8000/posts/{post_id}/"
-
-            payload = {}
-            headers = {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA1MDM4MzE3LCJpYXQiOjE3MDUwMzQ3MTcsImp0aSI6IjRkYThkNzRlZGM3ZTQ2NTI5Yzc4MTY2N2NkYWYwZDlhIiwidXNlcl9pZCI6MTB9.Dc6kkv5m3tT793cHN-qazajBzdSqUdSiV2nVdQlUEm0',
-            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-            }
-
-            response = requests.request("DELETE", url, headers=headers, data=payload)
-            return redirect('all-users-posts')
-    return render(request, 'Post/delete_post.html', {'post': post})
+    user = post.user
+    token = Token.objects.get(user=user)
+    token_access = token.access_token
+    print(token_access, 'token')
+    return render(request, 'Post/delete_post.html', {'post': post, 'token_access': token_access, 'post_id': post_id})
 
 
 # COMMENTS ---------------------------------------------------------
 # to get all comments of specific post
-class PostsCommentsView(APIView):
-    # permission_classes = [IsAuthenticated]
+# class PostsCommentsView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request, post_id):
-        post_comments = PostComment.objects.filter(post_id=post_id)
-        serializer = PostCommentSerializer(post_comments, many=True)
-        return render(request, 'Post/post_comments.html', {'post_comments': post_comments})
+#     def get(self, request, post_id):
+#         post_comments = PostComment.objects.filter(post_id=post_id)
+#         serializer = PostCommentSerializer(post_comments, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+def postsComments(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    # user = post.user
+    # token = Token.objects.get(user=user)
+    # token_access = token.access_token
+    post_comments = PostComment.objects.filter(post_id=post_id)
+    serializer = PostCommentSerializer(post_comments, many=True)
+    return render(request, 'Post/post_comments.html', {'post_comments': post_comments, 'post_id': post_id})
 
 # to comment on a post
 class CommentOnPost(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
@@ -216,26 +180,14 @@ class CommentOnPost(APIView):
 
 def CommentOnPostView(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-
-    if request.method == 'POST':
-        comment = request.POST.get('text')
-        url = f"http://127.0.0.1:8000/posts/{post_id}/comment/"
-
-        payload = json.dumps({
-        "comment_text": comment
-        })
-        headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA1MzgwNjY5LCJpYXQiOjE3MDUyOTQyNjksImp0aSI6Ijc1YTJmODllM2QyMjRjODE5ZGE5ZTRiMTM4MDI2ZTVhIiwidXNlcl9pZCI6MTV9.v5tzV6i9enbKeet_8QvD53Sdw3SraqT3W7Gtl_XRhuI',
-        'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-        }
-
-        response = requests.request("POST", url, headers=headers, data=payload)
-    return render(request, 'Post/comment_on_post.html', {'post': post})
+    user = post.user
+    token = Token.objects.get(user=user)
+    token_access = token.access_token
+    return render(request, 'Post/comment_on_post.html', {'post': post, 'token_access': token_access, 'post_id': post_id})
 
 # update a secific comment by id
 class UpdateComment(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def put(self, request, comment_id):
         comment = get_object_or_404(PostComment, id=comment_id)
@@ -248,70 +200,52 @@ class UpdateComment(APIView):
 
 def updateCommentView(request, comment_id):
     comment = get_object_or_404(PostComment, id=comment_id)
-
-    if request.method == 'POST':
-        if request.POST.get('_method') == 'PUT':
-            comment = request.POST.get('text')
-
-            url = f"http://127.0.0.1:8000/posts/{comment_id}/comment/update/"
-
-            payload = json.dumps({
-            "comment_text": comment
-            })
-            headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA1NDAzODI5LCJpYXQiOjE3MDUzMTc0MjksImp0aSI6IjY3MzU5NjYwZWM3YjRiOGFhOTBlZTI3OGI5ZDIyZjg3IiwidXNlcl9pZCI6MTV9.XEM9IxjfbTZV3fg3D2-mrwyn_y9vjq0K13LZy57iqKI',
-            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-            }
-            response = requests.request("PUT", url, headers=headers, data=payload)
-            return redirect('all-users-posts')
-    return render(request, 'Post/update_comment.html', {'comment': comment})
+    text = comment.comment_text
+    user = comment.user
+    token = Token.objects.get(user=user)
+    token_access = token.access_token
+    return render(request, 'Post/update_comment.html', {'text': text, 'token_access': token_access, 'comment_id': comment_id})
 
 # delete a specific comment by id
 class DeleteComment(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, comment_id):
         try:
             comment = get_object_or_404(PostComment, id=comment_id)
             comment.delete()
-            return Response('You have deleted the comment successfully', status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': 'You have deleted the comment successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Http404:
-            return Response('The comment does not exist', status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'The comment does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def deleteCommentView(request, comment_id):
     comment = get_object_or_404(PostComment, id=comment_id)
-
-    if request.method == 'POST':
-        if request.POST.get('_method') == 'DELETE':
-
-            url = f"http://127.0.0.1:8000/posts/{comment_id}/comment/delete/"
-
-            payload = {}
-            headers = {
-            'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-            }
-
-            response = requests.request("DELETE", url, headers=headers, data=payload)
-            return redirect('all-users-posts')
-    return render(request, 'Post/delete_comment.html', {'comment': comment})
+    user = comment.user
+    token = Token.objects.get(user=user)
+    access_token = token.access_token
+    return render(request, 'Post/delete_comment.html', {'comment': comment, 'access_token': access_token, 'comment_id': comment_id})
 
 # Retrieve all comments by a specific user.
 class RetrieveAllCommentsOfUser(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         comments = PostComment.objects.filter(user=user_id)
-        if comments.exists():
-            user_name = comments[0].user.name
         serializer = PostCommentRetrieveSerializer(comments, many=True)
-        return render(request, 'Post/all_comments_of_user.html', {'comments': serializer.data, 'username': user_name})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+def allUsersComment(request, user_id):
+    comments = PostComment.objects.filter(user=user_id)
+    if comments.exists():
+        user_name = comments[0].user.id
+    token = Token.objects.get(user=user_name)
+    access_token = token.access_token
+    return render(request, 'Post/all_comments_of_user.html', {'comments': comments, 'username': user_name})
 
 # LIKE -----------------------------------------------------------------
 #to like a post
 class LikePostView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)

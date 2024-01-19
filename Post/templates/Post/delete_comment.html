@@ -6,9 +6,42 @@
 
     <p>Are you sure you want to delete this comment?</p>
     {{comment.comment_text}}
-    <form method="POST">
+    <form method="POST" id="commentDeleteForm">
         {% csrf_token %}
-        <input type="hidden" name="_method" value="DELETE">
+        <input type="hidden" name="csrfmiddleware" value="{{csrf_token}}" id="csrftoken">
         <button type="submit">Delete Comment</button>
     </form>
+
+    <script>
+        document.getElementById('commentDeleteForm').addEventListener('submit', function(event) {
+            event.preventDefault()
+            deleteComment()
+        })
+
+        function deleteComment() {
+            var myHeaders = new Headers();
+            var comment_id = '{{comment_id}}'
+            var csrftoken = document.getElementById('csrftoken').value
+            const token_access = '{{access_token}}'
+            myHeaders.append("Authorization", `Bearer ${token_access}`);
+            console.log(token_access)
+            myHeaders.append("X-CSRFToken", csrftoken);
+
+            var requestOptions = {
+            method: 'DELETE',
+            headers: myHeaders,
+            redirect: 'follow'
+            };
+
+            fetch(`http://127.0.0.1:8000/posts/${comment_id}/comment/delete/`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                console.log(result)
+                if (result && result.message == 'You have deleted the comment successfully') {
+                    window.location.href = '/posts'
+                }
+            })
+            .catch(error => console.log('error', error));
+        }
+    </script>
 {% endblock %}

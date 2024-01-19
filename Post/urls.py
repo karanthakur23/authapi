@@ -7,7 +7,7 @@ urlpatterns = [
     path('<int:post_id>/', AllUsersPosts.as_view()),
     path('user/<int:user_id>/', UserPostsView.as_view()),
 
-    path('comments/<int:post_id>/', PostsCommentsView.as_view()),
+    # path('comments/<int:post_id>/', PostsCommentsView.as_view()),
     path('<int:post_id>/comment/', CommentOnPost.as_view(), name='comment-on-post'),
     path('<int:comment_id>/comment/delete/', DeleteComment.as_view()),
     path('<int:comment_id>/comment/update/', UpdateComment.as_view(), name='update-on-post'),
@@ -24,4 +24,8 @@ urlpatterns = [
     path('comment-on-post/<int:post_id>/', CommentOnPostView, name='comment-on-post-view'),
     path('comment-update/<int:comment_id>/', updateCommentView, name='comment-update'),
     path('comment-delete/<int:comment_id>/', deleteCommentView, name='comment-delete'),
+
+    path('user-posts/<int:user_id>/', UserPosts, name='user-posts'),
+    path('users-comment/<int:user_id>/', allUsersComment),
+    path('post-comments/<int:post_id>/', postsComments),
 ]

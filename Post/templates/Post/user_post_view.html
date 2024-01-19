@@ -4,16 +4,63 @@
 {% block content %}
     <h2>User Posts</h2>
     <hr>
-    <div>
+    <div id="posts">
         <!-- Display posts of a specific user -->
-        {% for post in posts %}
-            <div>
-                <h3>{{ post.caption }}</h3>
-                <p>{{ post.user.name }}</p>
-                <p>Posted at: {{ post.uploaded_at }}</p>
-                <!-- Add more details based on your Post model -->
-            </div>
-        <hr>
-        {% endfor %}
+
     </div>
+    {{user_id|json_script:"user-id"}}
+
+    <script>
+    const userId = JSON.parse(document.getElementById('user-id').textContent);  // Replace with the actual user ID
+    console.log(userId, '<-- user id')
+    let data = "{{request.user}}"
+    console.log(data, 'user')
+    const jwtToken = "{{token_access}}"
+    console.log('JWT Token:', jwtToken);
+    // Define the API endpoint
+    const apiUrl = `http://127.0.0.1:8000/posts/user/${userId}/`;
+
+    // Make a GET request using the Fetch API
+    fetch(apiUrl, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+        //'Authorization': `Bearer ${jwtToken}`,
+    },
+    })
+    .then(response => {
+        if (!response.ok) {
+          throw new Error('Authentication failed');
+        }
+
+        // Check the content type of the response
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json(); // Parse JSON response
+        } else {
+          throw new Error('Invalid content type in response');
+        }
+      })
+      .then(data => {
+        console.log(data)
+        const postsContainer = document.getElementById('posts')
+        const posts = data
+        posts.forEach(post => {
+            const postDiv = document.createElement('div')
+            postDiv.innerHTML = `
+                <h3>${post.caption}</h3>
+                <hr>
+            `
+            postsContainer.appendChild(postDiv)
+        })
+
+        //const jwtToken = data.token; // Assuming the token is provided in the response
+        //console.log('JWT Token:', jwtToken);
+        // Store the token securely (e.g., in cookies or localStorage)
+      })
+      .catch(error => {
+        console.error('Authentication error:', error);
+      });
+
+    </script>
 {% endblock %}

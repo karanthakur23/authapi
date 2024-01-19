@@ -9,6 +9,8 @@ from django.shortcuts import render, redirect
 import json
 import requests
 from .models import Token
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import logout
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -34,7 +36,7 @@ class UserLoginView(APIView):
     serializer.is_valid(raise_exception=True)
     email = serializer.data.get('email')
     password = serializer.data.get('password')
-    user = authenticate(email=email, password=password)
+    user = authenticate(request, email=email, password=password)
     print(f'Authenticated user: {user}')
     if user is not None:
       token = get_tokens_for_user(user)
@@ -48,6 +50,18 @@ class UserLoginView(APIView):
       # Log the authentication failure
       print(f'Authentication failed for email: {email}')
       return Response({'errors': {'non_field_errors': ['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
+
+class UserLogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+      user = request.user
+      print(user, 'request.user->')
+      Token.objects.get(user=user).delete()
+      # Log out the user and invalidate the token
+      logout(request)
+
+      return Response({'msg': 'Logout Successful'}, status=status.HTTP_200_OK)
 
 def UserLogin(request):
   if request.method == 'POST':

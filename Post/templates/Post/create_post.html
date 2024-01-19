@@ -4,10 +4,44 @@
 {% block content %}
     <h2>Create Post</h2>
     <div>
-        <form method="post" method="POST">
+        <form method="post" id="createpostform">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Create Post</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('createpostform').addEventListener('submit', function(event) {
+            event.preventDefault()
+            createPost()
+        })
+
+        function createPost() {
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var csrftoken = document.getElementById('csrftoken').value
+            const token_access = '{{access_token}}'
+            myHeaders.append("Authorization", `Bearer ${token_access}`);
+            console.log(token_access)
+            myHeaders.append("X-CSRFToken", csrftoken);
+
+            var raw = JSON.stringify({
+            "caption": "test post ubrsvjur"
+            });
+
+            var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:8000/posts/", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+        }
+    </script>
 {% endblock %}
