@@ -25,31 +25,30 @@ class UserRegistrationView(APIView):
     serializer = UserRegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
-    token = get_tokens_for_user(user)
-    Token.objects.create(user=user, access_token=token['access'])
+    # token = get_tokens_for_user(user)
+    # Token.objects.create(user=user, access_token=token['access'])
     print('Registration Success >>>>>')
-    return Response({'token': token, 'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
+    return Response({'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
 
 class UserLoginView(APIView):
-  def post(self, request, format=None):
-    serializer = UserLoginSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    email = serializer.data.get('email')
-    password = serializer.data.get('password')
-    user = authenticate(request, email=email, password=password)
-    print(f'Authenticated user: {user}')
-    if user is not None:
-      token = get_tokens_for_user(user)
-      token_instance, created = Token.objects.get_or_create(user=user)
-      token_instance.access_token = token['access']
-      token_instance.save()
-      return Response({'token': token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
-    # else:
-    #   return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
-    else:
-      # Log the authentication failure
-      print(f'Authentication failed for email: {email}')
-      return Response({'errors': {'non_field_errors': ['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
+    def post(self, request, format=None):
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.data.get('email')
+        password = serializer.data.get('password')
+        user = authenticate(request, email=email, password=password)
+
+        if user is not None:
+            # Create or get an existing token for the user
+            token = get_tokens_for_user(user)
+
+            # Return the token key in the response
+            return Response({'token': token, 'msg': 'Login Success'}, status=status.HTTP_200_OK)
+        else:
+            # Log the authentication failure
+            print(f'Authentication failed for email: {email}')
+            return Response({'errors': {'non_field_errors': ['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
 
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -64,24 +63,6 @@ class UserLogoutView(APIView):
       return Response({'msg': 'Logout Successful'}, status=status.HTTP_200_OK)
 
 def UserLogin(request):
-  if request.method == 'POST':
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-
-    url = "http://127.0.0.1:8000/api/user/login/"
-
-    payload = json.dumps({
-      "email": email,
-      "password": password
-    })
-    headers = {
-      'Content-Type': 'application/json',
-      'Cookie': 'csrftoken=ciIyQ0eD0MQQ4ipKfFnPyhIj8jDXirDn; sessionid=kl2okh1nca7ziq0zmrzwxr0u9a9b8kg7'
-    }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-    print(response, '------------------------------')
-    return redirect('all-users-posts')
   return render(request, 'account/login.html')
 
 

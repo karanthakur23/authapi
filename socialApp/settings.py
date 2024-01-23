@@ -177,7 +177,7 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000']
+# CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000']
 CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'account.User'

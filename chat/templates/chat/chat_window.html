@@ -20,7 +20,17 @@
         var id = JSON.parse(document.getElementById('receiver-id').textContent);
         const selectedUser = "{{ selected_user }}";
         const chatMessages = document.getElementById("chat-messages");
-        const socket = new WebSocket("ws://" + window.location.host + "/ws/chat/"+ id + "/");
+
+        const token = localStorage.getItem('token')
+        console.log('token->', token)
+
+        const headers = {
+            Authorization: `Bearer ${token}`,
+        };
+
+        const webscoketUrl = "ws://" + window.location.host + "/ws/chat/"+ id + "/?token=" + encodeURIComponent(token);
+        console.log(webscoketUrl, '<-websocket url')
+        const socket = new WebSocket(webscoketUrl);
 
         socket.addEventListener("open", (event) => {
             console.log("WebSocket connection opened");

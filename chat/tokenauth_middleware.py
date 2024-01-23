@@ -7,7 +7,7 @@ from channels.middleware import BaseMiddleware
 @database_sync_to_async
 def get_user(token_key):
     try:
-        token = Token.objects.get(key=token_key)
+        token = Token.objects.get(access_token=token_key)
         return token.user
     except Token.DoesNotExist:
         return AnonymousUser()
